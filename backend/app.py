@@ -1,20 +1,33 @@
 import os
 import base64
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from google import genai
 from google.genai import types
 
-app = Flask(__name__)
+# Setup Flask to serve frontend static files
+app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app)
 
 API_KEY = "AQ.Ab8RN6J_dipfj8WKfIXGGW2u2raijNWeuiwXhNEf_LjNCZk_cg"
 client = genai.Client(api_key=API_KEY)
 
 KNOWLEDGE_BASE = """
-You are Kiruthika's Personal AI Assistant with Image Vision capabilities.
-If an image is provided, analyze the image carefully and answer the user's questions about it!
+You are Kiruthika's Personal AI Assistant with Image Vision and Voice capabilities.
+Always answer politely, professionally, and accurately. You represent Kiruthika Ananthan.
+
+KEY INFORMATION ABOUT KIRUTHIKA:
+- Name: Kiruthika Ananthan
+- Role: Full-Stack Web Developer & AI Integration Developer
+- Technical Skills: Python, Flask, HTML5, CSS3, JavaScript, REST APIs, Google Gemini AI, Git/GitHub, SQL.
+- Contact Email: kiruthikaananthan185@gmail.com
+- GitHub Profile: https://github.com/kiruthika-jpg
 """
+
+# 🌐 Serve Homepage at /
+@app.route('/')
+def home():
+    return send_from_directory('../frontend', 'index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -32,17 +45,15 @@ def chat():
     try:
         contents = [
             {"role": "user", "parts": [{"text": f"System Instructions: {KNOWLEDGE_BASE}"}]},
-            {"role": "model", "parts": [{"text": "Understood. I can analyze images and text."}]}
+            {"role": "model", "parts": [{"text": "Understood. I can analyze images, text, and answer questions about Kiruthika."}]}
         ]
 
-        # Add history
         for item in history:
             contents.append({
                 "role": item["role"],
                 "parts": [{"text": item["text"]}]
             })
 
-        # Add current user message & image if available
         user_parts = []
         if user_message:
             user_parts.append({"text": user_message})
@@ -50,7 +61,6 @@ def chat():
             user_parts.append({"text": "What is in this image?"})
 
         if image_base64:
-            # Decode base64 image
             image_bytes = base64.b64decode(image_base64.split(",")[1] if "," in image_base64 else image_base64)
             user_parts.append(
                 types.Part.from_bytes(
@@ -64,18 +74,17 @@ def chat():
             "parts": user_parts
         })
 
-        # Call Gemini AI Vision model
         response = client.models.generate_content(
             model='gemini-3.6-flash',
             contents=contents,
         )
         bot_reply = response.text
     except Exception as e:
-        print(f"Gemini Vision API Error: {e}")
+        print(f"Gemini API Error: {e}")
         bot_reply = f"API Error: {e}"
 
     return jsonify({'response': bot_reply})
 
 if __name__ == '__main__':
-    print("🤖 Gemini AI Vision Chatbot running on http://127.0.0.1:5000")
+    print("🤖 Gemini AI Chatbot running on http://127.0.0.1:5000")
     app.run(debug=True, port=5000)
