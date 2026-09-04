@@ -43,7 +43,6 @@
         .dot:nth-child(2) { animation-delay: -0.16s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
 
-        /* Image Preview Banner */
         #image-preview-container { padding: 6px 16px; background: #e9ecef; display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
         #image-preview-container.hidden { display: none; }
 
@@ -185,7 +184,6 @@
             const typingIndicator = document.getElementById("typing-indicator");
             const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            // Render User Bubble
             let imageHTML = selectedBase64Image ? `<img src="${selectedBase64Image}" class="uploaded-img-preview">` : "";
             const userWrapper = document.createElement("div");
             userWrapper.className = "message-wrapper user-wrapper";
@@ -207,7 +205,8 @@
             typingIndicator.classList.remove("hidden");
 
             try {
-                const response = await fetch("http://127.0.0.1:5000/chat", {
+                // Uses relative path /chat (works on both localhost and Render!)
+                const response = await fetch("/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
