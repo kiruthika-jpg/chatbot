@@ -3,8 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro AI Chatbot</title>
-    <link rel="stylesheet" href="style.css">
+    <title>AI Vision & Voice Chatbot</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #1c1e21; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; transition: background 0.3s, color 0.3s; }
+        body.dark-mode { background: #18191a; color: #e4e6eb; }
+        body.dark-mode .chat-container { background: #242526; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        body.dark-mode #chat-box { background: #18191a; }
+        body.dark-mode .bot-bubble { background: #3a3b3c; color: #e4e6eb; }
+        body.dark-mode input { background: #3a3b3c; color: white; border-color: #4e4f50; }
+
+        .chat-container { width: 100%; max-width: 480px; height: 650px; background: #ffffff; border-radius: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header-title { display: flex; align-items: center; gap: 10px; }
+        .header-title h1 { font-size: 1.2rem; }
+        .status-dot { width: 10px; height: 10px; background-color: #2ed573; border-radius: 50%; box-shadow: 0 0 8px #2ed573; }
+        .header-buttons { display: flex; gap: 8px; }
+        .icon-btn { background: rgba(255, 255, 255, 0.2); border: none; color: white; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .icon-btn:hover { background: rgba(255, 255, 255, 0.35); }
+
+        #chat-box { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background: #f7f9fa; }
+        .message-wrapper { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; }
+        .user-wrapper { align-self: flex-end; flex-direction: row-reverse; }
+        .bot-wrapper { align-self: flex-start; }
+        
+        .avatar-img { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; object-fit: cover; border: 2px solid #007bff; }
+        
+        .message-bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.4; word-break: break-word; }
+        .user-bubble { background: #007bff; color: white; border-bottom-right-radius: 4px; }
+        .bot-bubble { background: #e4e6eb; color: #1c1e21; border-bottom-left-radius: 4px; }
+        .uploaded-img-preview { max-width: 200px; max-height: 150px; border-radius: 8px; margin-bottom: 6px; display: block; }
+        .timestamp { display: block; font-size: 10px; opacity: 0.7; margin-top: 4px; text-align: right; }
+
+        .typing-indicator { display: flex; align-items: center; gap: 10px; padding: 8px 16px; }
+        .typing-indicator.hidden { display: none; }
+        .dots-container { display: flex; gap: 4px; background: #e4e6eb; padding: 10px 14px; border-radius: 18px; }
+        .dot { width: 7px; height: 7px; background: #888; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+
+        /* Image Preview Banner */
+        #image-preview-container { padding: 6px 16px; background: #e9ecef; display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+        #image-preview-container.hidden { display: none; }
+
+        .input-area { padding: 12px 16px; display: flex; gap: 8px; border-top: 1px solid #e4e6eb; align-items: center; background: white; }
+        body.dark-mode .input-area { background: #242526; border-color: #3a3b3c; }
+        .mic-btn, .upload-btn { background: #e4e6eb; border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+        .mic-btn:hover, .upload-btn:hover { background: #d0d2d5; }
+        .mic-btn.listening { background: #ff4757; color: white; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        input[type="text"] { flex: 1; padding: 12px 16px; border: 1px solid #ccc; border-radius: 24px; outline: none; font-size: 14px; }
+        button#send-btn { padding: 12px 20px; background: #007bff; color: white; border: none; border-radius: 24px; font-weight: bold; cursor: pointer; }
+        button#send-btn:hover { background: #0056b3; }
+    </style>
 </head>
 <body>
 
@@ -13,9 +65,10 @@
         <div class="chat-header">
             <div class="header-title">
                 <span class="status-dot"></span>
-                <h1>🤖 AI Assistant</h1>
+                <h1>🤖 AI Vision Assistant</h1>
             </div>
             <div class="header-buttons">
+                <button id="voice-toggle-btn" class="icon-btn" onclick="toggleVoice()" title="Toggle Voice Output">🔊</button>
                 <button class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</button>
                 <button class="icon-btn" onclick="clearChat()" title="Clear Chat">🧹</button>
             </div>
@@ -24,31 +77,202 @@
         <!-- Chat Messages Box -->
         <div id="chat-box">
             <div class="message-wrapper bot-wrapper">
-                <div class="avatar">🤖</div>
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Robot" class="avatar-img" alt="Bot">
                 <div class="message-bubble bot-bubble">
-                    <p>Hello! I am your AI assistant. How can I help you today?</p>
+                    <p>Hello! Upload an image 🖼️ or ask me anything!</p>
                     <span class="timestamp">Just now</span>
                 </div>
             </div>
         </div>
 
+        <!-- Image Preview Banner -->
+        <div id="image-preview-container" class="hidden">
+            <span id="image-name">Image selected</span>
+            <button onclick="cancelImage()" style="border:none; background:none; cursor:pointer; font-weight:bold; color:red;">❌ Remove</button>
+        </div>
+
         <!-- Typing Indicator -->
         <div id="typing-indicator" class="typing-indicator hidden">
-            <div class="avatar">🤖</div>
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Robot" class="avatar-img" alt="Bot">
             <div class="dots-container">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </div>
         </div>
 
-        <!-- Input Area -->
+        <!-- Input Area with Mic & Image Upload -->
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
+            <button class="upload-btn" onclick="document.getElementById('image-file-input').click()" title="Upload Image">🖼️</button>
+            <input type="file" id="image-file-input" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+            
+            <button id="mic-btn" class="mic-btn" onclick="startVoiceRecognition()" title="Click to Speak">🎙️</button>
+            <input type="text" id="user-input" placeholder="Ask a question or upload image..." autocomplete="off">
             <button id="send-btn" onclick="sendMessage()">Send 🚀</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        let chatHistory = [];
+        let isVoiceEnabled = true;
+        let selectedBase64Image = null;
+
+        const USER_PICTURE = "https://github.com/kiruthika-jpg.png";
+        const BOT_PICTURE = "https://api.dicebear.com/7.x/bottts/svg?seed=Robot";
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedBase64Image = e.target.result;
+                document.getElementById("image-name").innerText = `📷 Image: ${file.name}`;
+                document.getElementById("image-preview-container").classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function cancelImage() {
+            selectedBase64Image = null;
+            document.getElementById("image-file-input").value = "";
+            document.getElementById("image-preview-container").classList.add("hidden");
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                document.getElementById("mic-btn").classList.add("listening");
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById("user-input").value = transcript;
+                sendMessage();
+            };
+
+            recognition.onend = () => {
+                document.getElementById("mic-btn").classList.remove("listening");
+            };
+        }
+
+        function startVoiceRecognition() {
+            if (recognition) recognition.start();
+        }
+
+        function speakText(text) {
+            if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleVoice() {
+            isVoiceEnabled = !isVoiceEnabled;
+            document.getElementById("voice-toggle-btn").innerText = isVoiceEnabled ? "🔊" : "🔇";
+        }
+
+        async function sendMessage() {
+            const inputElement = document.getElementById("user-input");
+            const message = inputElement.value.trim();
+            if (!message && !selectedBase64Image) return;
+
+            const chatBox = document.getElementById("chat-box");
+            const typingIndicator = document.getElementById("typing-indicator");
+            const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Render User Bubble
+            let imageHTML = selectedBase64Image ? `<img src="${selectedBase64Image}" class="uploaded-img-preview">` : "";
+            const userWrapper = document.createElement("div");
+            userWrapper.className = "message-wrapper user-wrapper";
+            userWrapper.innerHTML = `
+                <img src="${USER_PICTURE}" class="avatar-img" alt="User">
+                <div class="message-bubble user-bubble">
+                    ${imageHTML}
+                    <p>${escapeHtml(message || "What is in this image?")}</p>
+                    <span class="timestamp">${timeString}</span>
+                </div>
+            `;
+            chatBox.appendChild(userWrapper);
+
+            const imageToSend = selectedBase64Image;
+            cancelImage();
+            inputElement.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            typingIndicator.classList.remove("hidden");
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: message,
+                        image: imageToSend,
+                        history: chatHistory
+                    })
+                });
+
+                const data = await response.json();
+                const botTimeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                typingIndicator.classList.add("hidden");
+
+                const botWrapper = document.createElement("div");
+                botWrapper.className = "message-wrapper bot-wrapper";
+                botWrapper.innerHTML = `
+                    <img src="${BOT_PICTURE}" class="avatar-img" alt="Bot">
+                    <div class="message-bubble bot-bubble">
+                        <p>${escapeHtml(data.response)}</p>
+                        <span class="timestamp">${botTimeString}</span>
+                    </div>
+                `;
+                chatBox.appendChild(botWrapper);
+
+                speakText(data.response);
+                chatHistory.push({ role: "user", text: message || "What is in this image?" });
+                chatHistory.push({ role: "model", text: data.response });
+
+            } catch (error) {
+                console.error("Error:", error);
+                typingIndicator.classList.add("hidden");
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+
+        function clearChat() {
+            chatHistory = [];
+            document.getElementById("chat-box").innerHTML = `
+                <div class="message-wrapper bot-wrapper">
+                    <img src="${BOT_PICTURE}" class="avatar-img" alt="Bot">
+                    <div class="message-bubble bot-bubble"><p>Chat cleared!</p></div>
+                </div>
+            `;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const inputElement = document.getElementById("user-input");
+            if (inputElement) {
+                inputElement.addEventListener("keypress", (e) => {
+                    if (e.key === "Enter") sendMessage();
+                });
+            }
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.innerText = text;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>
