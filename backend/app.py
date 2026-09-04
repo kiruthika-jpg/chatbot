@@ -3,7 +3,6 @@ import base64
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
-# Robust import handling for cloud servers
 try:
     from google import genai
     from google.genai import types
@@ -12,9 +11,8 @@ except Exception as e:
     print(f"GenAI Import Warning: {e}")
     HAS_GENAI = False
 
-# Absolute path calculation to frontend
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
+FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
 CORS(app)
@@ -34,14 +32,10 @@ KEY INFORMATION ABOUT KIRUTHIKA:
 - GitHub Profile: https://github.com/kiruthika-jpg
 """
 
-# 🌐 Serve Homepage at /
 @app.route('/')
 def home():
-    if os.path.exists(os.path.join(FRONTEND_DIR, 'index.html')):
-        return send_from_directory(FRONTEND_DIR, 'index.html')
-    return "<h1>AI Chatbot Server Running!</h1><p>Frontend file loading...</p>"
+    return send_from_directory(FRONTEND_DIR, 'index.html')
 
-# 📁 Serve any static assets/subpaths
 @app.route('/<path:path>')
 def serve_static(path):
     if os.path.exists(os.path.join(FRONTEND_DIR, path)):
