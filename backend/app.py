@@ -5,8 +5,11 @@ from flask_cors import CORS
 from google import genai
 from google.genai import types
 
-# Setup Flask to serve frontend static files
-app = Flask(__name__, static_folder='../frontend', static_url_path='')
+# Calculate absolute path to frontend directory (works locally AND on cloud servers)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
+
+app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
 CORS(app)
 
 API_KEY = "AQ.Ab8RN6J_dipfj8WKfIXGGW2u2raijNWeuiwXhNEf_LjNCZk_cg"
@@ -27,7 +30,7 @@ KEY INFORMATION ABOUT KIRUTHIKA:
 # 🌐 Serve Homepage at /
 @app.route('/')
 def home():
-    return send_from_directory('../frontend', 'index.html')
+    return send_from_directory(FRONTEND_DIR, 'index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
