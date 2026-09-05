@@ -204,7 +204,6 @@
 
             typingIndicator.classList.remove("hidden");
 
-            // Smart API URL detector (Works locally AND when deployed on Render!)
             const apiUrl = window.location.protocol === "file:" ? "http://127.0.0.1:5000/chat" : "/chat";
 
             try {
@@ -241,15 +240,6 @@
             } catch (error) {
                 console.error("Error:", error);
                 typingIndicator.classList.add("hidden");
-                const errorWrapper = document.createElement("div");
-                errorWrapper.className = "message-wrapper bot-wrapper";
-                errorWrapper.innerHTML = `
-                    <img src="${BOT_PICTURE}" class="avatar-img" alt="Bot">
-                    <div class="message-bubble bot-bubble" style="background:#ffdddd; color:#d32f2f;">
-                        <p>❌ Could not connect to backend server. Make sure <code>python app.py</code> is running in VS Code terminal!</p>
-                    </div>
-                `;
-                chatBox.appendChild(errorWrapper);
             }
 
             chatBox.scrollTop = chatBox.scrollHeight;
